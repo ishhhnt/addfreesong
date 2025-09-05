@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AD FREE Music Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: url('sky/1.jpg') no-repeat center center/cover;
+            transition: background 0.5s;
+        }
+
+        /* Sliding Header */
+        .slideshow-header {
+            position: fixed;
+            top: 20px;
+            right: -300px;
+            width: 200px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            z-index: 12;
+            animation: slideHeader 40s infinite;
+        }
+
+        @keyframes slideHeader {
+            0% { right: -300px; }
+            30% { right: 20px; }
+            70% { right: 20px; }
+            100% { right: -300px; }
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: transparent;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            margin-top: 80px;
+        }
+
+        /* Left Sidebar */
+        .left-sidebar {
+            width: 0;
+            background: #222;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .left-sidebar.active {
+            width: 200px;
+        }
+
+        .left-menu-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 11;
+            transition: transform 0.2s;
+        }
+
+        .left-menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .song-list {
+            padding: 10px;
+        }
+
+        .song-list li {
+            list-style: none;
+            padding: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .song-list li:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            transform: translateX(5px);
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            width: 0;
+            background: #222;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .right-sidebar.active {
+            width: 200px;
+        }
+
+        .right-menu-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 11;
+            transition: transform 0.2s;
+        }
+
+        .right-menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .image-options {
+            padding: 10px;
+            display: none;
+        }
+
+        .image-options.active {
+            display: block;
+        }
+
+        .image-options li {
+            list-style: none;
+            padding: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .image-options li:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            transform: translateX(5px);
+        }
+
+        .image-list {
+            padding: 10px;
+            display: none;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+
+        .image-list.active {
+            display: block;
+        }
+
+        .image-list li {
+            list-style: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .image-list img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .image-list img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Player */
+        .player {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: transparent;
+        }
+
+        .music-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .music-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .song-title {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .progress-container:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .progress {
+            width: 0;
+            height: 100%;
+            background: #fff;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+
+        .song-timing {
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .controls button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .controls button:hover {
+            transform: scale(1.2);
+            color: #ddd;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .volume-container input[type="range"] {
+            width: 100px;
+            cursor: pointer;
+        }
+
+        .auto-background-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .auto-background-btn:hover {
+            color: #ddd;
+        }
+
+        .back-btn {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .slideshow-header {
+                width: 150px;
+                font-size: 16px;
+                padding: 10px;
+            }
+
+            .left-sidebar.active, .right-sidebar.active {
+                width: 150px;
+            }
+
+            .music-card {
+                width: 90%;
+            }
+
+            .song-title {
+                font-size: 18px;
+            }
+
+            .volume-container input[type="range"] {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-header">AD FREE</div>
+    <div class="container">
+        <!-- Left Sidebar -->
+        <button class="left-menu-btn">☰</button>
+        <div class="left-sidebar">
+            <ul class="song-list">
+                <li data-src="MyMusic/1.mp3">Title Track Saiyaara 128 Kbps</li>
+                <li data-src="MyMusic/2.mp3">Song 2</li>
+                <li data-src="MyMusic/3.mp3">Pardesiya Param Sundari 128 Kbps</li>
+                <li data-src="MyMusic/4.mp3">Sapphire (Mp3 Song)-(SambalpuriStar.In)</li>
+                <li data-src="MyMusic/5.mp3">Song 5</li>
+                <button class="back-btn">Back</button>
+            </ul>
+        </div>
+
+        <!-- Main Player -->
+        <div class="player">
+            <div class="music-card">
+                <div class="song-title">Select a Song</div>
+                <div class="progress-container">
+                    <div class="progress"></div>
+                </div>
+                <div class="song-timing">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+                <div class="controls">
+                    <button id="prev">⏮</button>
+                    <button id="play">▶️</button>
+                    <button id="next">⏭</button>
+                </div>
+                <div class="volume-container">
+                    <span>Vol:</span>
+                    <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+                    <button class="auto-background-btn" id="auto-background">Auto Background</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <button class="right-menu-btn">⋮</button>
+        <div class="right-sidebar">
+            <ul class="image-options">
+                <li data-folder="sky">Sky</li>
+                <li data-folder="anime">Anime</li>
+                <button class="back-btn">Back</button>
+            </ul>
+            <ul class="image-list" id="image-list">
+                <!-- Images will be populated dynamically -->
+                <button class="back-btn">Back</button>
+            </ul>
+        </div>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('play');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const volumeSlider = document.getElementById('volume');
+        const autoBackgroundBtn = document.getElementById('auto-background');
+        const progressContainer = document.querySelector('.progress-container');
+        const progress = document.querySelector('.progress');
+        const songTitle = document.querySelector('.song-title');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const leftSidebar = document.querySelector('.left-sidebar');
+        const rightSidebar = document.querySelector('.right-sidebar');
+        const leftMenuBtn = document.querySelector('.left-menu-btn');
+        const rightMenuBtn = document.querySelector('.right-menu-btn');
+        const songList = document.querySelector('.song-list');
+        const imageOptions = document.querySelector('.image-options');
+        const imageList = document.querySelector('.image-list');
+        const backBtns = document.querySelectorAll('.back-btn');
+
+        let currentSongIndex = -1;
+        let autoBackgroundInterval = null;
+        const songs = [
+            { src: 'MyMusic/1.mp3', title: 'Song 1' },
+            { src: 'MyMusic/2.mp3', title: 'Song 2' },
+            { src: 'MyMusic/3.mp3', title: 'Song 3' },
+            { src: 'MyMusic/4.mp3', title: 'Song 4' },
+            { src: 'MyMusic/5.mp3', title: 'Song 5' }
+        ];
+
+        const images = {
+            sky: Array.from({ length: 10 }, (_, i) => `sky/${i + 1}.jpg`),
+            anime: Array.from({ length: 10 }, (_, i) => `anime/${i + 1}.jpg`)
+        };
+
+        const allImages = [...images.sky, ...images.anime];
+
+        // Format Time
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Toggle Left Sidebar
+        leftMenuBtn.addEventListener('click', () => {
+            leftSidebar.classList.toggle('active');
+            songList.style.display = leftSidebar.classList.contains('active') ? 'block' : 'none';
+            rightSidebar.classList.remove('active');
+            imageOptions.classList.remove('active');
+            imageList.classList.remove('active');
+            stopAutoBackground();
+        });
+
+        // Toggle Right Sidebar
+        rightMenuBtn.addEventListener('click', () => {
+            rightSidebar.classList.toggle('active');
+            imageOptions.classList.toggle('active');
+            imageList.classList.remove('active');
+            leftSidebar.classList.remove('active');
+            songList.style.display = 'none';
+            stopAutoBackground();
+        });
+
+        // Back Buttons
+        backBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                leftSidebar.classList.remove('active');
+                rightSidebar.classList.remove('active');
+                songList.style.display = 'none';
+                imageOptions.classList.remove('active');
+                imageList.classList.remove('active');
+            });
+        });
+
+        // Song Selection
+        document.querySelectorAll('.song-list li').forEach((song, index) => {
+            song.addEventListener('click', () => {
+                currentSongIndex = index;
+                loadSong(currentSongIndex);
+                playSong();
+                leftSidebar.classList.remove('active');
+                songList.style.display = 'none';
+            });
+        });
+
+        // Image Folder Selection
+        document.querySelectorAll('.image-options li').forEach(item => {
+            item.addEventListener('click', () => {
+                const folder = item.getAttribute('data-folder');
+                imageList.innerHTML = '';
+                images[folder].forEach(img => {
+                    const li = document.createElement('li');
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img;
+                    li.appendChild(imgElement);
+                    imageList.appendChild(li);
+                });
+                imageOptions.classList.remove('active');
+                imageList.classList.add('active');
+                const backBtn = document.createElement('button');
+                backBtn.className = 'back-btn';
+                backBtn.textContent = 'Back';
+                imageList.appendChild(backBtn);
+                backBtn.addEventListener('click', () => {
+                    leftSidebar.classList.remove('active');
+                    rightSidebar.classList.remove('active');
+                    songList.style.display = 'none';
+                    imageOptions.classList.remove('active');
+                    imageList.classList.remove('active');
+                });
+                stopAutoBackground();
+            });
+        });
+
+        // Auto Background
+        autoBackgroundBtn.addEventListener('click', () => {
+            startAutoBackground();
+        });
+
+        function startAutoBackground() {
+            let index = 0;
+            stopAutoBackground();
+            autoBackgroundInterval = setInterval(() => {
+                document.body.style.background = `url('${allImages[index]}') no-repeat center center/cover`;
+                index = (index + 1) % allImages.length;
+            }, 2000);
+        }
+
+        function stopAutoBackground() {
+            if (autoBackgroundInterval) {
+                clearInterval(autoBackgroundInterval);
+                autoBackgroundInterval = null;
+            }
+        }
+
+        // Image Selection
+        imageList.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG') {
+                const imgSrc = e.target.src;
+                document.body.style.background = `url('${imgSrc}') no-repeat center center/cover`;
+                rightSidebar.classList.remove('active');
+                imageOptions.classList.remove('active');
+                imageList.classList.remove('active');
+                stopAutoBackground();
+            }
+        });
+
+        // Volume Control
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+        });
+
+        // Load Song
+        function loadSong(index) {
+            audio.src = songs[index].src;
+            songTitle.textContent = songs[index].title;
+            audio.addEventListener('loadedmetadata', () => {
+                durationEl.textContent = formatTime(audio.duration);
+            });
+        }
+
+        // Play Song
+        function playSong() {
+            audio.play();
+            playBtn.textContent = '⏸';
+        }
+
+        // Pause Song
+        function pauseSong() {
+            audio.pause();
+            playBtn.textContent = '▶️';
+        }
+
+        // Play/Pause Button
+        playBtn.addEventListener('click', () => {
+            if (audio.paused && audio.src) {
+                playSong();
+            } else {
+                pauseSong();
+            }
+        });
+
+        // Previous Song
+        prevBtn.addEventListener('click', () => {
+            if (currentSongIndex > 0) {
+                currentSongIndex--;
+                loadSong(currentSongIndex);
+                playSong();
+            }
+        });
+
+        // Next Song
+        nextBtn.addEventListener('click', () => {
+            if (currentSongIndex < songs.length - 1) {
+                currentSongIndex++;
+                loadSong(currentSongIndex);
+                playSong();
+            }
+        });
+
+        // Progress Bar and Timing
+        audio.addEventListener('timeupdate', () => {
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        // Seek Song
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        });
+
+        // Auto-play next song
+        audio.addEventListener('ended', () => {
+            if (currentSongIndex < songs.length - 1) {
+                currentSongIndex++;
+                loadSong(currentSongIndex);
+                playSong();
+            } else {
+                pauseSong();
+            }
+        });
+    </script>
+</body>
+</html>
